@@ -18,7 +18,7 @@ const char* ultrasound_topic = "ultrasound";
 const char* dopplerradar_topic = "doppler-radar";
 const char* potmeter_topic = "potmeter";
 const char* mqtt_username = "Gruppe3"; // MQTT username
-const char* mqtt_password = "1234959Gruppe3"; // MQTT password
+const char* mqtt_password = "**************"; // MQTT password
 const char* clientID = "Weather_Reporter"; // MQTT client ID
 
 // Initialise the WiFi and MQTT Client objects

@@ -15,11 +15,13 @@ const char* mqtt_username = "***"; // MQTT username
 const char* mqtt_password = "***"; // MQTT password
 const char* clientID = "Data transfer"; // MQTT client ID
 
+
 // Initialise the WiFi and MQTT Client objects
 WiFiClient wifiClient;
 
 // 1883 is the listener port for the Broker
 PubSubClient client(mqtt_server, 1883, wifiClient);
+
 
 // Custom function to connect to the MQTT broker via WiFi
 void connect_MQTT(){

@@ -1,25 +1,20 @@
-
-//#include "DHT.h"
+// Includes libraries to enable MQTT
 #include "PubSubClient.h"
 #include "WiFi.h"
 
-//#define DHTPIN 4 
-//#define DHTTYPE DHT11 
-//DHT dht(DHTPIN, DHTTYPE);
-
-
 // WiFi
-const char* ssid = "Test";    //Brukernavnet til WLAN            
-const char* wifi_password = "********";//Fyll inn passordet til det trådløse internettet
+const char* ssid = "***";    // User name WLAN            
+const char* wifi_password = "***"; // Password wireless internet
 
 // MQTT
-const char* mqtt_server = "192.168.**.***"; //Fyll inn resten av IP
+const char* mqtt_server = "***"; // IP
 const char* ultrasound_topic = "ultrasound";
 const char* dopplerradar_topic = "doppler-radar";
-const char* potmeter_topic = "potmeter";
-const char* mqtt_username = "Gruppe3"; // MQTT username
-const char* mqtt_password = "**************"; // MQTT password
-const char* clientID = "Weather_Reporter"; // MQTT client ID
+const char* pirsensor_topic = "pir-sensor";
+const char* mqtt_username = "***"; // MQTT username
+const char* mqtt_password = "***"; // MQTT password
+const char* clientID = "Data transfer"; // MQTT client ID
+
 
 // Initialise the WiFi and MQTT Client objects
 WiFiClient wifiClient;
@@ -27,7 +22,6 @@ WiFiClient wifiClient;
 // 1883 is the listener port for the Broker
 PubSubClient client(mqtt_server, 1883, wifiClient);
 
- 
 
 // Custom function to connect to the MQTT broker via WiFi
 void connect_MQTT(){
@@ -57,25 +51,22 @@ void connect_MQTT(){
   }
 }
 
-//_____
 
 int detectPin = 13;         // Detects doppler-radar-sensor (RCWL-0516) output signal
 bool detect = false;        // Keeps track of 
 
-const int trigPin = 32;     // GPIO 32 = trigger pin
+const int trigPin = 32;     // GPIO 32 = trigger pin (HC-SR04)
 const int echoPin = 33;     // GPIO 33 = echo pin
 
-const int potPin = 34;      // potentiometer is connected to GPIO 34 (Analog ADC1_CH6)
-int potValue = 0;           // creating variable for storing the potentiometer value.
+const int pirPin = 34;      // GPIO 34 = PIR-sensor (HC-SR501)
+bool pirValue = false;
 
 void setup() {
-
   Serial.begin(115200); // Establishing serial output at 115200 baud.
-  //dht.begin();    
   pinMode(trigPin, OUTPUT); // Configuring trigger pin to output.
   pinMode(echoPin, INPUT);  // Configuring echo pin to input.
-  pinMode(potPin, INPUT);
-  pinMode (detectPin, INPUT);
+  pinMode(pirPin, INPUT);
+  pinMode(detectPin, INPUT);
 }
 
 void loop() {
@@ -83,7 +74,7 @@ void loop() {
   Serial.setTimeout(5000);
   
   // Reading potentiometer value.
-  potValue = analogRead(potPin);
+  pirValue = digitalRead(pirPin);
 
   // Reading microwave doppler sensor value.
   detect = digitalRead(detectPin);
@@ -100,15 +91,15 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   distance = (duration/2) /29.1;
 
-  // PUBLISH to the MQTT Broker (topic = potmeter)
-  if (client.publish(potmeter_topic, String(potValue).c_str())) {  
-    Serial.println("Potmeter value sent!");
+  // PUBLISH to the MQTT Broker
+  if (client.publish(pirsensor_topic, String(pirValue).c_str())) {  
+    Serial.println("Pirsensor value sent!");
   }
   else {
-    Serial.println("Potmeter value failed to send. Reconnecting to MQTT Broker and trying again");
+    Serial.println("Pirsensor value failed to send. Reconnecting to MQTT Broker and trying again");
     client.connect(clientID, mqtt_username, mqtt_password);
     delay(2); // This delay ensures that client.publish doesn't clash with the client.connect call
-    client.publish(potmeter_topic, String(potValue).c_str());
+    client.publish(pirsensor_topic, String(pirValue).c_str());
   }
 
   if (client.publish(dopplerradar_topic, String(detect).c_str())) {  
@@ -137,14 +128,12 @@ void loop() {
   
   
 
-  
-
   // Writing microwave doppler sensor value to serial monitor.
   if(detect == true) {Serial.println("Toilett occupied");} // Movement detected
   else {Serial.println("Toilett not occupied");} // Movement not detected
 
-  // Writing potentiometer value to serial monitor.
-  Serial.print("Potentiometer value: "); Serial.println(potValue);
+  // Writing pir-sesor value to serial monitor.
+  Serial.print("PIR-sensor value: "); Serial.println(pirValue);
   
   // Writing ultrasound distance-sensor values to serial monitor
   if (distance > 400) {Serial.println("Out of range (too far)");}
